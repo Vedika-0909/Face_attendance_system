@@ -9,7 +9,7 @@ class Face_recognization_system:
         self.root.title("Face Recognition Attendance System")
 
         #first image
-        img=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\right_side.png")
+        img=Image.open (r"images\right_side.png")
         img=img.resize((500,130))
         self.photoimg=ImageTk.PhotoImage(img)
 
@@ -17,7 +17,7 @@ class Face_recognization_system:
         f_lbl.place(x=0,y=0,width=500,height=130)
 
           #Second image
-        img1=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\middle.webp")
+        img1=Image.open (r"images\middle.webp")
         img1=img1.resize((500,130))
         self.photoimg1=ImageTk.PhotoImage(img1)
 
@@ -25,7 +25,7 @@ class Face_recognization_system:
         f_lbl.place(x=500,y=0,width=500,height=130)
 
         #Third Image
-        img2=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\left_side.jpg")
+        img2=Image.open (r"images\left_side.jpg")
         img2=img2.resize((500,130))
         self.photoimg2=ImageTk.PhotoImage(img2)
 
@@ -71,7 +71,7 @@ class Face_recognization_system:
         b1_1.place(x=800,y=400,width=210,height=40)
 
         #Help
-        img6=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Help.jpg")
+        img6=Image.open (r"images\Help.jpg")
         img6=img6.resize((220,220))
         self.photoimg6=ImageTk.PhotoImage(img6)
 
