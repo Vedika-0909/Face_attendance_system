@@ -37,7 +37,7 @@ class Face_recognization_system:
         title_lbl.place(x=0,y=150,width=1530,height=45)
 
         #Student button
-        img3=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\student_detail.avif")
+        img3=Image.open (r"images\student_detail.avif")
         img3=img3.resize((220,220))
         self.photoimg3=ImageTk.PhotoImage(img3)
 
@@ -49,7 +49,7 @@ class Face_recognization_system:
 
        
         #Face recognition
-        img4=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Face_Recognition.avif")
+        img4=Image.open (r"images\Face_Recognition.avif")
         img4=img4.resize((220,220))
         self.photoimg4=ImageTk.PhotoImage(img4)
 
@@ -60,7 +60,7 @@ class Face_recognization_system:
         b1_1.place(x=450,y=400,width=210,height=40)
 
         #Attendance
-        img5=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Attendance.jpg")
+        img5=Image.open (r"images\Attendance.jpg")
         img5=img5.resize((220,220))
         self.photoimg5=ImageTk.PhotoImage(img5)
 
@@ -82,7 +82,7 @@ class Face_recognization_system:
         b1_1.place(x=1150,y=400,width=210,height=40)
 
         #Train data
-        img7=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Train_Data.jpg")
+        img7=Image.open (r"images\Train_Data.jpg")
         img7=img7.resize((220,220))
         self.photoimg7=ImageTk.PhotoImage(img7)
 
@@ -93,7 +93,7 @@ class Face_recognization_system:
         b1_1.place(x=100,y=700,width=210,height=40)
 
         #Photos
-        img8=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Photos.jpg")
+        img8=Image.open (r"images\Photos.jpg")
         img8=img8.resize((220,220))
         self.photoimg8=ImageTk.PhotoImage(img8)
 
@@ -104,7 +104,7 @@ class Face_recognization_system:
         b1_1.place(x=450,y=700,width=210,height=40)
 
         #Developer
-        img9=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Developer.avif")
+        img9=Image.open (r"images\Developer.avif")
         img9=img9.resize((220,220))
         self.photoimg9=ImageTk.PhotoImage(img9)
 
@@ -115,7 +115,7 @@ class Face_recognization_system:
         b1_1.place(x=800,y=700,width=210,height=40)
 
         #Exit
-        img10=Image.open (r"C:\Users\Vedika\OneDrive\Desktop\Student Face Recognization system\images\Exit.jpg")
+        img10=Image.open (r"images\Exit.jpg")
         img10=img10.resize((220,220))
         self.photoimg10=ImageTk.PhotoImage(img10)
 
