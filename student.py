@@ -2,11 +2,10 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import psycopg2
+import cv2
 
-# ----------------- DB CONFIG -----------------
 DB_URL = "postgresql://neondb_owner:npg_QbefUI5gLEq7@ep-quiet-union-a1c1sfqv-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
-# ----------------- COLORS & FONTS -----------------
 BG_COLOR = "#0f1724"
 PANEL_BG = "#0b2545"
 ACCENT = "#1e90ff"
@@ -271,3 +270,6 @@ if __name__ == "__main__":
     root = Tk()
     app = StudentApp(root)
     root.mainloop()
+
+    # ----------------generate data set or take photo sample ------------------
+    
