@@ -1,7 +1,10 @@
+# Part 1/6
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 import psycopg2
+import cv2
+import os
 
 # ----------------- DB CONFIG -----------------
 DB_URL = "postgresql://neondb_owner:npg_QbefUI5gLEq7@ep-quiet-union-a1c1sfqv-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -24,9 +27,8 @@ class StudentApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Student Management - Face Attendance")
-        self.root.geometry("1200x720")
+        # allow window to be maximized by user (we'll use root.state in main)
         self.root.configure(bg=BG_COLOR)
-        self.root.resizable(False, False)
 
         # Connect to Neon Cloud DB
         try:
@@ -37,17 +39,18 @@ class StudentApp:
             messagebox.showerror("DB Connection Error", str(e))
             return
 
+        # ensure DB table exists
         self.create_table_db()
 
-        # UI
+        # UI layout
         self.create_header()
         content = Frame(self.root, bg=BG_COLOR)
-        content.place(x=20, y=100, width=1160, height=580)
+        content.place(x=20, y=100, relwidth=0.96, relheight=0.80)
 
         self.left_panel = Frame(content, bg=PANEL_BG)
-        self.left_panel.place(x=0, y=0, width=560, height=580)
+        self.left_panel.place(x=0, y=0, relwidth=0.47, relheight=1)
         self.right_panel = Frame(content, bg=BG_COLOR)
-        self.right_panel.place(x=580, y=0, width=580, height=580)
+        self.right_panel.place(relx=0.48, y=0, relwidth=0.52, relheight=1)
 
         self.create_form(self.left_panel)
         self.create_table(self.right_panel)
@@ -66,7 +69,7 @@ class StudentApp:
         form_title.place(x=12, y=12)
 
         frm = Frame(parent, bg=PANEL_BG)
-        frm.place(x=12, y=50, width=536, height=500)
+        frm.place(x=12, y=50, relwidth=0.95, relheight=0.93)
 
         # Department, Course, Year, Semester
         Label(frm, text="Department", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=0)
@@ -78,13 +81,13 @@ class StudentApp:
         self.cmb_course.current(0); self.cmb_course.place(x=180, y=22, width=160)
 
         Label(frm, text="Year", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=360, y=0)
-        self.cmb_year = ttk.Combobox(frm, values=["Select", "2020-21", "2021-22", "2022-23"], state="readonly")
+        self.cmb_year = ttk.Combobox(frm, values=["Select", "2023-24", "2024-25", "2025-26"], state="readonly")
         self.cmb_year.current(0); self.cmb_year.place(x=360, y=22, width=160)
 
         Label(frm, text="Semester", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=60)
         self.cmb_sem = ttk.Combobox(frm, values=["Select", "Semester-1", "Semester-2"], state="readonly")
         self.cmb_sem.current(0); self.cmb_sem.place(x=0, y=82, width=160)
-
+# Part 2/6 (continue)
         # Student ID, Name, Division, Roll No
         Label(frm, text="Student ID", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=120)
         self.ent_id = Entry(frm); self.ent_id.place(x=0, y=142, width=160)
@@ -93,15 +96,16 @@ class StudentApp:
         self.ent_name = Entry(frm); self.ent_name.place(x=180, y=142, width=340)
 
         Label(frm, text="Class Div", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=180)
-        self.cmb_div = ttk.Combobox(frm, values=["Select", "A", "B", "C"], state="readonly"); self.cmb_div.current(0)
-        self.cmb_div.place(x=0, y=202, width=160)
+        self.cmb_div = ttk.Combobox(frm, values=["Select", "A", "B", "C"], state="readonly")
+        self.cmb_div.current(0); self.cmb_div.place(x=0, y=202, width=160)
 
         Label(frm, text="Roll No", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=180, y=180)
         self.ent_roll = Entry(frm); self.ent_roll.place(x=180, y=202, width=160)
 
         # Gender, DOB, Phone
         Label(frm, text="Gender", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=360, y=180)
-        self.cmb_gender = ttk.Combobox(frm, values=["Male", "Female", "Other"], state="readonly"); self.cmb_gender.set("Male")
+        self.cmb_gender = ttk.Combobox(frm, values=["Male", "Female", "Other"], state="readonly")
+        self.cmb_gender.set("Male")
         self.cmb_gender.place(x=360, y=202, width=160)
 
         Label(frm, text="DOB (DD-MM-YYYY)", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=240)
@@ -115,43 +119,99 @@ class StudentApp:
         self.ent_email = Entry(frm); self.ent_email.place(x=0, y=322, width=340)
 
         Label(frm, text="Address", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=0, y=360)
-        self.txt_addr = Text(frm, height=3, width=40); self.txt_addr.place(x=0, y=382)
+        self.txt_addr = Text(frm, height=3, width=40)
+        self.txt_addr.place(x=0, y=382)
 
         Label(frm, text="Teacher Name", bg=PANEL_BG, fg=TEXT_MUTED, font=FONT_LABEL).place(x=360, y=300)
-        self.ent_teacher = Entry(frm); self.ent_teacher.place(x=360, y=322, width=160)
+        self.ent_teacher = Entry(frm)
+        self.ent_teacher.place(x=360, y=322, width=160)
+
+        # ---------------- RADIO BUTTONS ----------------
+        self.photo_var = StringVar()
+        self.photo_var.set("take")
+
+        Radiobutton(frm, text="Take Photo Sample", variable=self.photo_var, value="take",
+                    bg=PANEL_BG, fg=TEXT_LIGHT, selectcolor=PANEL_BG).place(x=0, y=440)
+
+        Radiobutton(frm, text="No Photo Sample", variable=self.photo_var, value="no",
+                    bg=PANEL_BG, fg=TEXT_LIGHT, selectcolor=PANEL_BG).place(x=180, y=440)
 
         # Buttons
         Button(frm, text="SAVE", bg=ACCENT, fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
-               activebackground="#187bcd", command=self.save_student).place(x=10, y=470, width=100, height=36)
-        Button(frm, text="UPDATE", bg="#16a085", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
-               activebackground="#11906f", command=self.update_student).place(x=120, y=470, width=100, height=36)
-        Button(frm, text="DELETE", bg="#e74c3c", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
-               activebackground="#c0392b", command=self.delete_student).place(x=230, y=470, width=100, height=36)
-        Button(frm, text="RESET", bg="#7f8c8d", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
-               activebackground="#6b7a7a", command=self.reset_form).place(x=340, y=470, width=100, height=36)
+               activebackground="#187bcd", command=self.save_student).place(x=10, y=480, width=100, height=36)
 
+        Button(frm, text="UPDATE", bg="#16a085", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
+               activebackground="#11906f", command=self.update_student).place(x=120, y=480, width=100, height=36)
+
+        Button(frm, text="DELETE", bg="#e74c3c", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
+               activebackground="#c0392b", command=self.delete_student).place(x=230, y=480, width=100, height=36)
+
+        Button(frm, text="RESET", bg="#7f8c8d", fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
+               activebackground="#6b7a7a", command=self.reset_form).place(x=340, y=480, width=100, height=36)
+
+        # ---------------- PHOTO SAMPLE BUTTONS ----------------
+        Button(frm, text="ADD PHOTO SAMPLE", bg="#1e5bd8", fg="white", font=FONT_BTN, bd=0,
+               command=self.add_photo_sample).place(x=10, y=525, width=180, height=36)
+
+        Button(frm, text="UPDATE PHOTO SAMPLE", bg="#9327c9", fg="white", font=FONT_BTN, bd=0,
+               command=self.update_photo_sample).place(x=200, y=525, width=200, height=36)
+# Part 3/6
     # ----------------- TABLE -----------------
+       # ----------------- TABLE -----------------
     def create_table(self, parent):
+
         search_frame = Frame(parent, bg=BG_COLOR)
         search_frame.place(x=0, y=0, width=580, height=100)
+
         Label(search_frame, text="Search By", bg=BG_COLOR, fg=TEXT_LIGHT, font=FONT_LABEL).place(x=10, y=10)
-        self.cmb_search = ttk.Combobox(search_frame, values=["Select", "StudentID", "StudentName", "RollNo"], state="readonly"); self.cmb_search.current(0)
+        self.cmb_search = ttk.Combobox(search_frame, values=["Select", "StudentID", "StudentName", "RollNo"], state="readonly")
+        self.cmb_search.current(0)
         self.cmb_search.place(x=80, y=12, width=160)
-        self.ent_search = Entry(search_frame); self.ent_search.place(x=260, y=12, width=200)
-        Button(search_frame, text="SEARCH", bg=ACCENT, fg=TEXT_LIGHT, font=FONT_BTN, bd=0, command=self.search_student).place(x=470, y=10, width=90)
+
+        self.ent_search = Entry(search_frame)
+        self.ent_search.place(x=260, y=12, width=200)
+
+        Button(search_frame, text="SEARCH", bg=ACCENT, fg=TEXT_LIGHT, font=FONT_BTN, bd=0,
+               command=self.search_student).place(x=470, y=10, width=90)
 
         table_frame = Frame(parent, bg=BG_COLOR)
-        table_frame.place(x=0, y=100, width=580, height=480)
-        style = ttk.Style(); style.theme_use("clam")
+        table_frame.place(x=0, y=100, width=780, height=480)
+
+        style = ttk.Style()
+        style.theme_use("clam")
         style.configure("Treeview", background="#f0f4f8", foreground="#111827", rowheight=28, fieldbackground="#f0f4f8")
         style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"))
 
-        cols = ("Department", "Course", "Year", "Semester", "StudentID", "StudentName", "Class Div", "Roll No")
+        cols = (
+            "Department", "Course", "Year", "Semester",
+            "StudentID", "StudentName", "Class Div", "Roll No",
+            "Gender", "DOB", "Phone", "Email", "Address", "Teacher"
+        )
+
         self.tree = ttk.Treeview(table_frame, columns=cols, show="headings")
-        for c in cols: self.tree.heading(c, text=c); self.tree.column(c, width=100, anchor=CENTER)
+
+        for c in cols:
+            self.tree.heading(c, text=c)
+
+            if c in ("Address", "Email"):
+                self.tree.column(c, width=200, anchor=CENTER)
+            elif c == "Teacher":
+                self.tree.column(c, width=150, anchor=CENTER)
+            else:
+                self.tree.column(c, width=120, anchor=CENTER)
+
+        # Scrollbars
         vsb = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=vsb.set); vsb.pack(side=RIGHT, fill=Y); self.tree.pack(fill=BOTH, expand=1)
+        hsb = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
+
+        self.tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        vsb.pack(side=RIGHT, fill=Y)
+        hsb.pack(side=BOTTOM, fill=X)
+
+        self.tree.pack(fill=BOTH, expand=1)
         self.tree.bind("<ButtonRelease-1>", self.on_row_select)
+
 
     # ----------------- DB OPERATIONS -----------------
     def create_table_db(self):
@@ -175,13 +235,15 @@ class StudentApp:
         """)
         self.conn.commit()
 
-    # ----------------- CRUD -----------------
+    # ----------------- CRUD: SAVE & LOAD -----------------
     def save_student(self):
         sid = self.ent_id.get().strip()
         name = self.ent_name.get().strip()
+
         if not sid or not name:
             messagebox.showwarning("Warning", "Student ID and Name required!")
             return
+
         try:
             self.cursor.execute("""
                 INSERT INTO students(student_id,name,department,course,year,semester,class_div,roll_no,
@@ -193,21 +255,42 @@ class StudentApp:
                 self.ent_phone.get(), self.ent_email.get(), self.txt_addr.get("1.0",END).strip(), self.ent_teacher.get()
             ))
             self.conn.commit()
-            messagebox.showinfo("Saved", "Student saved successfully.")
+
+            # Photo Logic
+            if self.photo_var.get() == "take":
+                self.generate_dataset(sid)
+            else:
+                messagebox.showinfo("Saved", "Saved without photo sample.")
+
             self.load_students()
             self.reset_form()
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
     def load_students(self):
-        for item in self.tree.get_children(): self.tree.delete(item)
-        self.cursor.execute("SELECT department, course, year, semester, student_id, name, class_div, roll_no FROM students")
-        for row in self.cursor.fetchall(): self.tree.insert("", END, values=row)
+        # clear tree
+        for item in self.tree.get_children():
+            self.tree.delete(item)
 
+        # fetch all columns in same order as cols
+        self.cursor.execute("""
+            SELECT department, course, year, semester, student_id, name, class_div, roll_no,
+                   gender, dob, phone, email, address, teacher
+            FROM students
+            ORDER BY student_id
+        """)
+        rows = self.cursor.fetchall()
+        for row in rows:
+            # insert row tuple directly (Treeview expects a sequence)
+            self.tree.insert("", END, values=row)
+# Part 4/6
     def update_student(self):
         selected = self.tree.selection()
-        if not selected: messagebox.showwarning("Warning", "Select a row to update."); return
+        if not selected:
+            messagebox.showwarning("Warning", "Select a row to update.")
+            return
         sid = self.ent_id.get().strip()
+
         try:
             self.cursor.execute("""
                 UPDATE students SET name=%s, department=%s, course=%s, year=%s, semester=%s,
@@ -226,11 +309,26 @@ class StudentApp:
 
     def delete_student(self):
         selected = self.tree.selection()
-        if not selected: messagebox.showwarning("Warning", "Select a row to delete."); return
+        if not selected:
+            messagebox.showwarning("Warning", "Select a row to delete.")
+            return
+
+        # student_id is at index 4 in the tree values (as per our cols)
         sid = self.tree.item(selected[0])["values"][4]
+
         try:
             self.cursor.execute("DELETE FROM students WHERE student_id=%s", (sid,))
             self.conn.commit()
+
+            # Delete photo folder data safely
+            if os.path.exists("data"):
+                for file in os.listdir("data"):
+                    if file.startswith(f"user.{sid}."):
+                        try:
+                            os.remove(os.path.join("data", file))
+                        except:
+                            pass
+
             messagebox.showinfo("Deleted", "Student deleted successfully.")
             self.load_students()
         except Exception as e:
@@ -244,30 +342,127 @@ class StudentApp:
         self.cmb_sem.current(0); self.cmb_div.current(0); self.cmb_gender.set("Male")
 
     def search_student(self):
-        key = self.cmb_search.get(); txt = self.ent_search.get().strip().lower()
-        if key=="Select" or not txt: messagebox.showwarning("Warning", "Select type and enter text."); return
+        key = self.cmb_search.get()
+        txt = self.ent_search.get().strip().lower()
+
+        if key=="Select" or not txt:
+            messagebox.showwarning("Warning", "Select type and enter text.")
+            return
+
+        # map field names to tree index (based on cols)
+        field_map = {"StudentID":4, "StudentName":5, "RollNo":7}
+        idx = field_map.get(key, None)
+        if idx is None:
+            messagebox.showwarning("Warning", "Invalid search type.")
+            return
+
         for item in self.tree.get_children():
             vals = self.tree.item(item)["values"]
-            field_map = {"StudentID":4, "StudentName":5, "RollNo":7}
-            idx = field_map.get(key, None)
-            if idx is not None:
-                if txt in str(vals[idx]).lower():
-                    self.tree.selection_set(item); self.tree.see(item)
-                    return
+            if txt in str(vals[idx]).lower():
+                self.tree.selection_set(item)
+                self.tree.see(item)
+                return
+
         messagebox.showinfo("Not Found", "No matching records found.")
 
     def on_row_select(self, event):
         sel = self.tree.focus()
-        if not sel: return
+        if not sel:
+            return
+
         vals = self.tree.item(sel,"values")
+
         try:
+            # populate form fields (indexes based on cols order)
             self.cmb_dept.set(vals[0]); self.cmb_course.set(vals[1]); self.cmb_year.set(vals[2])
             self.cmb_sem.set(vals[3]); self.ent_id.delete(0,END); self.ent_id.insert(0,vals[4])
             self.ent_name.delete(0,END); self.ent_name.insert(0,vals[5]); self.cmb_div.set(vals[6])
             self.ent_roll.delete(0,END); self.ent_roll.insert(0,vals[7])
-        except: pass
+            # additional fields
+            try: self.cmb_gender.set(vals[8])
+            except: pass
+            try: self.ent_dob.delete(0,END); self.ent_dob.insert(0, vals[9])
+            except: pass
+            try: self.ent_phone.delete(0,END); self.ent_phone.insert(0, vals[10])
+            except: pass
+            try: self.ent_email.delete(0,END); self.ent_email.insert(0, vals[11])
+            except: pass
+            try:
+                self.txt_addr.delete("1.0", END)
+                self.txt_addr.insert("1.0", vals[12])
+            except: pass
+            try: self.ent_teacher.delete(0,END); self.ent_teacher.insert(0, vals[13])
+            except: pass
+        except Exception as e:
+            # ignore populate errors but print in console
+            print("Row select error:", e)
+# Part 5/6
+    # ---------------------- CAMERA & PHOTO FUNCTIONS ----------------------
+    def generate_dataset(self, student_id):
+        if not os.path.exists("data"):
+            os.makedirs("data")
 
+        cam = cv2.VideoCapture(0)
+        if not cam.isOpened():
+            messagebox.showerror("Camera Error", "Cannot access webcam. Make sure camera is connected and not used by another app.")
+            return
+
+        count = 0
+        messagebox.showinfo("INFO", "Capturing photos... Look at the camera. Press Enter to stop early.")
+
+        while True:
+            ret, frame = cam.read()
+            if not ret:
+                break
+
+            count += 1
+            file_name = f"data/user.{student_id}.{count}.jpg"
+            cv2.imwrite(file_name, frame)
+
+            cv2.imshow("Capturing", frame)
+
+            # stop on Enter (13) or when 50 images captured
+            if cv2.waitKey(1) == 13 or count >= 50:
+                break
+
+        cam.release()
+        cv2.destroyAllWindows()
+        messagebox.showinfo("Success", f"Photo samples captured successfully ({count} images).")
+
+    def add_photo_sample(self):
+        sid = self.ent_id.get().strip()
+        if sid == "":
+            messagebox.showwarning("Warning", "Enter Student ID first!")
+            return
+
+        self.generate_dataset(sid)
+
+    def update_photo_sample(self):
+        sid = self.ent_id.get().strip()
+        if sid == "":
+            messagebox.showwarning("Warning", "Enter Student ID first!")
+            return
+
+        # Delete old images if any
+        if os.path.exists("data"):
+            for file in os.listdir("data"):
+                if file.startswith(f"user.{sid}."):
+                    try:
+                        os.remove(os.path.join("data", file))
+                    except:
+                        pass
+
+        messagebox.showinfo("INFO", "Old samples deleted (if existed). Capturing new photos...")
+        self.generate_dataset(sid)
+# ----------------- RUN APP -----------------
 if __name__ == "__main__":
     root = Tk()
+    # start maximized so frames get full area
+    try:
+        root.state('zoomed')
+    except:
+        # fallback: set large geometry
+        root.geometry("1600x900+0+0")
+    root.resizable(True, True)
     app = StudentApp(root)
     root.mainloop()
