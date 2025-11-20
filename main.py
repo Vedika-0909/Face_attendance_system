@@ -23,6 +23,7 @@ class Face_recognization_system:
 
         f_lbl=Label(self.root,image=self.photoimg1)
         f_lbl.place(x=500,y=0,width=500,height=130)
+
         #Third Image
         img2=Image.open (r"images\left_side.jpg")
         img2=img2.resize((500,130))
