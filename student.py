@@ -397,7 +397,7 @@ class StudentApp:
 # Part 4/6
         # add to treeview as example
         data = (self.cmb_dept.get(), self.cmb_course.get(), self.cmb_year.get(), self.cmb_sem.get(),
-                sid, name, self.cmb_div.get(), self.ent_roll.get())
+        sid, name, self.cmb_div.get(), self.ent_roll.get())
         self.tree.insert("", END, values=data)
         messagebox.showinfo("Saved", "Student saved locally (sample).")
 
@@ -611,16 +611,16 @@ class StudentApp:
         messagebox.showinfo("INFO", "Old samples deleted (if existed). Capturing new photos...")
         self.generate_dataset(sid)
 # ----------------- RUN APP -----------------
-            self.cmb_dept.set(vals[0])
-            self.cmb_course.set(vals[1])
-            self.cmb_year.set(vals[2])
-            self.cmb_sem.set(vals[3])
-            self.ent_id.delete(0, END); self.ent_id.insert(0, vals[4])
-            self.ent_name.delete(0, END); self.ent_name.insert(0, vals[5])
-            self.cmb_div.set(vals[6])
-            self.ent_roll.delete(0, END); self.ent_roll.insert(0, vals[7])
-        except Exception:
-            pass
+        self.cmb_dept.set(vals[0])
+        self.cmb_course.set(vals[1])
+        self.cmb_year.set(vals[2])
+        self.cmb_sem.set(vals[3])
+        self.ent_id.delete(0, END); self.ent_id.insert(0, vals[4])
+        self.ent_name.delete(0, END); self.ent_name.insert(0, vals[5])
+        self.cmb_div.set(vals[6])
+        self.ent_roll.delete(0, END); self.ent_roll.insert(0, vals[7])
+except Exception:
+pass
 
 if __name__ == "__main__":
     root = Tk()
