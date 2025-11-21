@@ -111,7 +111,7 @@ class Face_recognization_system:
         b1=Button(image=self.photoimg9,cursor="hand2")
         b1.place(x=800,y=500,width=210,height=200)
 
-        b1_1=Button(text="Train Data",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue")
+        b1_1=Button(text="Developer",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue")
         b1_1.place(x=800,y=700,width=210,height=40)
 
         #Exit
