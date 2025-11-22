@@ -1,4 +1,3 @@
-
 import os
 import threading
 import queue
@@ -10,29 +9,34 @@ import cv2
 import numpy as np
 
 # ---------- CONFIG ----------
-# dataset folder where images are stored (your case: data/)
-DATASET_PATH = "data"   # <-- change if your folder name is different
-# example image to show on left (optional). I used the uploaded sample path.
-EXAMPLE_IMAGE = r"/mnt/data/9d7a09c2-d8e1-49e0-88f5-e35345a35bba.png"
+# Folder containing subfolders named by student ID
+DATASET_PATH = r"data"
 
-# minimum number of images required per student to include them in training
-MIN_IMAGES_PER_STUDENT = 5
+# Example image shown initially (uploaded file path available in this session)
+EXAMPLE_IMAGE = r"/mnt/data/Screenshot 2025-11-22 150913.png"
 
-# output model path
+# Minimum images per student (set to 1 for quick test; increase to 3-5 for real training)
+MIN_IMAGES_PER_STUDENT = 1
+
 MODEL_DIR = "models"
 MODEL_FILENAME = "classifier.xml"
+FACE_SIZE = (200, 200)
+
+# Preview display size (left panel)
+PREVIEW_SIZE = (650, 650)
 # ----------------------------
 
 class TrainApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Student Management - Face Attendance (Train Data)")
+        self.root.title("Face Attendance - Train Data")
+
         try:
             self.root.state('zoomed')
         except:
             self.root.geometry("1200x800")
-        self.root.config(bg="white")
 
+        self.root.config(bg="white")
         self.q = queue.Queue()
 
         title_lbl = Label(self.root, text="TRAIN DATA SET",
@@ -43,79 +47,79 @@ class TrainApp:
         main_frame = Frame(self.root, bg="white")
         main_frame.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-        # Left: image / illustration
+        # Left UI (preview)
         left_frame = Frame(main_frame, bg="white")
         left_frame.pack(side=LEFT, fill=BOTH, expand=True)
 
-        # load sample image (safe)
-        try:
-            img = Image.open(EXAMPLE_IMAGE).resize((650, 650))
-        except Exception:
-            img = Image.new("RGB", (650, 650), (245, 245, 245))
-        self.left_photo = ImageTk.PhotoImage(img)
-        lbl_left = Label(left_frame, image=self.left_photo, bg="white")
-        lbl_left.pack(padx=10, pady=10)
+        # Load initial example image (if exists) otherwise blank
+        if EXAMPLE_IMAGE and os.path.exists(EXAMPLE_IMAGE):
+            try:
+                pil_img = Image.open(EXAMPLE_IMAGE).convert("RGB").resize(PREVIEW_SIZE)
+            except Exception:
+                pil_img = Image.new("RGB", PREVIEW_SIZE, (245, 245, 245))
+        else:
+            pil_img = Image.new("RGB", PREVIEW_SIZE, (245, 245, 245))
 
-        # Right: info + controls
+        self.left_photo = ImageTk.PhotoImage(pil_img)
+        self.left_img_label = Label(left_frame, image=self.left_photo, bg="white")
+        self.left_img_label.pack(padx=10, pady=10)
+
+        # Right UI (controls + info)
         right_frame = Frame(main_frame, width=420, bg="white")
         right_frame.pack(side=RIGHT, fill=Y, padx=10)
 
-        head = Label(right_frame, text="Training Information",
-                     font=("times new roman", 18, "bold"),
-                     bg="white", fg="darkblue")
-        head.pack(pady=8)
+        Label(right_frame, text="Training Information",
+              font=("times new roman", 18, "bold"),
+              bg="white", fg="darkblue").pack(pady=8)
 
-        info_text = (
-            "This will train LBPH recognizer using images in the dataset folder.\n\n"
-            "Filename format expected: user.<ID>.<imgno>.jpg\n"
-            "Example: user.435.1.jpg  (ID = 435)\n\n"
-            f"Students with fewer than {MIN_IMAGES_PER_STUDENT} images will be skipped."
-        )
-        lbl_info = Label(right_frame, text=info_text, font=("times new roman", 11),
-                         justify=LEFT, bg="white")
-        lbl_info.pack(pady=8)
+        Label(right_frame,
+              text=("Dataset format:\n"
+                    "data/<student_id>/*.jpg or .png (folder name must be numeric)\n\n"
+                    "During training, preview on the left updates with the current image."),
+              font=("times new roman", 11),
+              justify=LEFT, bg="white").pack(pady=8)
 
-        # Live variables
         self.current_student_var = StringVar(value="Current Student: -")
         self.loaded_images_var = StringVar(value="Images Loaded: 0")
         self.total_images_var = StringVar(value="Total Images: 0")
 
-        lbl_cur = Label(right_frame, textvariable=self.current_student_var,
-                        font=("times new roman", 13), bg="white")
-        lbl_cur.pack(pady=(12,2))
+        Label(right_frame, textvariable=self.current_student_var,
+              font=("times new roman", 13), bg="white").pack(pady=(12,2))
+        Label(right_frame, textvariable=self.loaded_images_var,
+              font=("times new roman", 12), bg="white").pack()
+        Label(right_frame, textvariable=self.total_images_var,
+              font=("times new roman", 12), bg="white").pack()
 
-        lbl_loaded = Label(right_frame, textvariable=self.loaded_images_var,
-                           font=("times new roman", 12), bg="white")
-        lbl_loaded.pack()
-
-        lbl_total = Label(right_frame, textvariable=self.total_images_var,
-                          font=("times new roman", 12), bg="white")
-        lbl_total.pack()
-
-        self.progress = ttk.Progressbar(right_frame, orient=HORIZONTAL, length=300, mode='determinate')
+        self.progress = ttk.Progressbar(right_frame, orient=HORIZONTAL,
+                                        length=300, mode='determinate')
         self.progress.pack(pady=12)
 
-        self.train_btn = Button(right_frame, text="START TRAINING", font=("times new roman", 14, "bold"),
-                                bg="green", fg="white", width=18, command=self.start_training_thread, cursor="hand2")
+        self.train_btn = Button(right_frame, text="START TRAINING",
+                                font=("times new roman", 14, "bold"),
+                                bg="green", fg="white", width=18,
+                                command=self.start_training_thread)
         self.train_btn.pack(pady=8)
 
-        # Text log
-        self.log_text = Text(right_frame, width=48, height=14, bg="#f7f7f7")
+        self.log_text = Text(right_frame, width=48, height=15, bg="#f7f7f7")
         self.log_text.pack(pady=8)
 
-        # Poll queue
-        self.root.after(200, self.process_queue)
+        # Start queue processor
+        self.root.after(100, self.process_queue)
 
-    def ui_push(self, typ, msg=None, **kwargs):
-        self.q.put((typ, msg, kwargs))
+    # Put UI commands into queue from worker thread
+    def ui_push(self, typ, msg=None, **kw):
+        self.q.put((typ, msg, kw))
 
+    # Main-thread UI updates
     def process_queue(self):
         try:
             while True:
                 typ, msg, kw = self.q.get_nowait()
+
                 if typ == "log":
                     self.log_text.insert(END, msg + "\n")
                     self.log_text.see(END)
+
                 elif typ == "update":
                     if "student" in kw:
                         self.current_student_var.set(f"Current Student: {kw['student']}")
@@ -123,65 +127,80 @@ class TrainApp:
                         self.loaded_images_var.set(f"Images Loaded: {kw['loaded']}")
                     if "total" in kw:
                         self.total_images_var.set(f"Total Images: {kw['total']}")
+
                 elif typ == "progress":
-                    val = kw.get("value", 0)
-                    self.progress['value'] = val
+                    self.progress['value'] = kw.get("value", 0)
+
+                elif typ == "preview":
+                    # kw contains 'path' to image to preview
+                    p = kw.get("path")
+                    if p and os.path.exists(p):
+                        try:
+                            img_cv = cv2.imread(p)
+                            if img_cv is not None:
+                                img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+                                pil_img = Image.fromarray(img_rgb).resize(PREVIEW_SIZE)
+                            else:
+                                pil_img = Image.new("RGB", PREVIEW_SIZE, (245, 245, 245))
+                        except Exception:
+                            pil_img = Image.new("RGB", PREVIEW_SIZE, (245, 245, 245))
+
+                        self.left_photo = ImageTk.PhotoImage(pil_img)
+                        self.left_img_label.config(image=self.left_photo)
+
                 elif typ == "done":
-                    messagebox.showinfo("Result", msg or "Training Completed!")
+                    messagebox.showinfo("Result", msg or "Done")
                     self.train_btn.config(state=NORMAL)
+
         except queue.Empty:
             pass
-        self.root.after(200, self.process_queue)
+
+        self.root.after(100, self.process_queue)
 
     def start_training_thread(self):
         self.train_btn.config(state=DISABLED)
-        t = threading.Thread(target=self.train_classifier, daemon=True)
-        t.start()
+        threading.Thread(target=self.train_classifier, daemon=True).start()
 
     def train_classifier(self):
         # Validate dataset path
-        dataset_path = DATASET_PATH
-        if not os.path.exists(dataset_path):
-            self.ui_push("log", f"Dataset folder not found: {dataset_path}")
+        if not os.path.exists(DATASET_PATH):
+            self.ui_push("log", f"❌ Dataset folder not found: {DATASET_PATH}")
             self.ui_push("done", "Dataset folder missing.")
             return
 
-        # gather all image files
-        image_files = [f for f in os.listdir(dataset_path)
-                       if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+        # Build student map: id -> list of image paths
+        student_map = {}
+        for entry in sorted(os.listdir(DATASET_PATH)):
+            folder_path = os.path.join(DATASET_PATH, entry)
+            if not os.path.isdir(folder_path):
+                continue
+            if not entry.isdigit():
+                self.ui_push("log", f"Skipping non-numeric folder: {entry}")
+                continue
+            sid = int(entry)
+            files = [os.path.join(folder_path, f) for f in sorted(os.listdir(folder_path))
+                     if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+            if files:
+                student_map[sid] = files
+                print(f"DEBUG: Found {len(files)} images for ID {sid}")
 
-        if len(image_files) == 0:
-            self.ui_push("log", "No images found in dataset folder.")
-            self.ui_push("done", "Dataset empty.")
+        if not student_map:
+            self.ui_push("log", "⚠ No images found in dataset folders.")
+            self.ui_push("done", "Training stopped.")
             return
 
-        # group files by student id extracted from filename format user.<id>.<imgno>.jpg
-        student_map = {}   # id -> list of filenames
-        for fname in image_files:
-            parts = fname.split(".")
-            # expected: ["user", "<id>", "<imgno>", "jpg"]
-            if len(parts) < 3:
-                self.ui_push("log", f"Skipping unexpected filename: {fname}")
-                continue
-            try:
-                sid = int(parts[1])
-            except Exception:
-                self.ui_push("log", f"Skipping file with non-int id: {fname}")
-                continue
-            student_map.setdefault(sid, []).append(fname)
-
-        # filter students with fewer than MIN_IMAGES_PER_STUDENT
+        # Filter by MIN_IMAGES_PER_STUDENT
         filtered_students = []
         total_images = 0
         for sid, flist in sorted(student_map.items()):
             if len(flist) >= MIN_IMAGES_PER_STUDENT:
-                filtered_students.append((sid, sorted(flist)))
+                filtered_students.append((sid, flist))
                 total_images += len(flist)
             else:
                 self.ui_push("log", f"Skipping student {sid}: only {len(flist)} image(s) (need >= {MIN_IMAGES_PER_STUDENT})")
 
         if total_images == 0:
-            self.ui_push("log", "No students meet minimum image requirement.")
+            self.ui_push("log", "No students meet the minimum image requirement.")
             self.ui_push("done", "No valid data to train.")
             return
 
@@ -194,28 +213,29 @@ class TrainApp:
 
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
-        # iterate students
+        # iterate students and images
         for sid, flist in filtered_students:
             self.ui_push("update", None, student=sid)
             self.ui_push("log", f"Processing student {sid} with {len(flist)} images...")
-            for fname in flist:
-                img_path = os.path.join(dataset_path, fname)
+
+            for img_path in flist:
+                # send preview request to main thread
+                self.ui_push("preview", None, path=img_path)
+
                 try:
                     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
                     if img is None:
-                        self.ui_push("log", f"Could not read image: {img_path}")
+                        self.ui_push("log", f"Cannot read image: {img_path}")
                         continue
 
-                    # Attempt face detection and crop; if fails use full image
-                    faces_rects = face_cascade.detectMultiScale(img, 1.1, 4)
+                    faces_rects = face_cascade.detectMultiScale(img, scaleFactor=1.1, minNeighbors=4)
                     if len(faces_rects) > 0:
                         x, y, w, h = faces_rects[0]
                         face_img = img[y:y+h, x:x+w]
                     else:
                         face_img = img
 
-                    # resize to consistent size
-                    face_resized = cv2.resize(face_img, (200, 200))
+                    face_resized = cv2.resize(face_img, FACE_SIZE)
                     faces.append(face_resized)
                     ids.append(sid)
 
@@ -223,11 +243,13 @@ class TrainApp:
                     percent = int((processed / total_images) * 100)
                     self.ui_push("update", None, loaded=processed)
                     self.ui_push("progress", None, value=percent)
-                    self.ui_push("log", f"Loaded {fname} ({processed}/{total_images})")
+                    self.ui_push("log", f"✓ Loaded {os.path.basename(img_path)} ({processed}/{total_images})")
+
+                    # small delay so preview is visible
+                    time.sleep(0.2)
                 except Exception as e:
                     self.ui_push("log", f"Error processing {img_path}: {e}")
 
-        # finalize training
         if len(faces) == 0:
             self.ui_push("log", "No valid faces collected. Training aborted.")
             self.ui_push("done", "Training failed.")
@@ -236,10 +258,9 @@ class TrainApp:
         self.ui_push("log", "Starting LBPH training...")
         try:
             recognizer = cv2.face.LBPHFaceRecognizer_create()
-            recognizer.train(faces, np.array(ids))
+            recognizer.train(faces, np.array(ids, dtype=np.int32))
 
-            if not os.path.exists(MODEL_DIR):
-                os.makedirs(MODEL_DIR)
+            os.makedirs(MODEL_DIR, exist_ok=True)
             model_path = os.path.join(MODEL_DIR, MODEL_FILENAME)
             recognizer.write(model_path)
 
@@ -250,6 +271,8 @@ class TrainApp:
             self.ui_push("done", "Training failed.")
 
 if __name__ == "__main__":
+    # quick dependency hint if needed:
+    # pip install opencv-contrib-python pillow
     root = Tk()
     app = TrainApp(root)
     root.mainloop()
