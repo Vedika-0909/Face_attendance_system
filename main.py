@@ -1,12 +1,40 @@
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
+from student import StudentApp
+
 
 class Face_recognization_system:
     def __init__(self, root):
         self.root = root
         self.root.geometry("1530x790+0+0")
         self.root.title("Face Recognition Attendance System")
+
+        # -------------------- FUNCTION ADD HERE --------------------
+        def student_details():
+            self.new_window = Toplevel(self.root)
+            self.app = StudentApp(self.new_window)
+
+        self.student_details = student_details
+        # ------------------------------------------------------------
+
+        # ----------- OPEN PHOTOS FUNCTION -----------
+        def open_photos():
+            import os
+            os.startfile("data")
+        self.open_photos = open_photos
+        
+        # -------------------- TRAIN DATA FUNCTION --------------------------
+        import subprocess
+
+        def open_train():
+            try:
+                subprocess.run(["python", "train.py"], check=True)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not open Train.py\n{e}")
+
+        self.open_train = open_train
+        # -------------------------------------------------------------------
 
         #first image
         img=Image.open (r"images\right_side.png")
@@ -16,7 +44,7 @@ class Face_recognization_system:
         f_lbl=Label(self.root,image=self.photoimg)
         f_lbl.place(x=0,y=0,width=500,height=130)
 
-          #Second image
+        #Second image
         img1=Image.open (r"images\middle.webp")
         img1=img1.resize((500,130))
         self.photoimg1=ImageTk.PhotoImage(img1)
@@ -32,22 +60,26 @@ class Face_recognization_system:
         f_lbl=Label(self.root,image=self.photoimg2)
         f_lbl.place(x=1000,y=0,width=500,height=130)
         
-         #Title
+        #Title
         title_lbl=Label(text="FACE RECOGNITION ATTENDANCE SYSTEM",font=("times new roman",35,"bold"),bg="black",fg="white")
         title_lbl.place(x=0,y=150,width=1530,height=45)
 
-        #Student button
+        # ------------------- STUDENT BUTTON -------------------
         img3=Image.open (r"images\student_detail.avif")
         img3=img3.resize((220,220))
         self.photoimg3=ImageTk.PhotoImage(img3)
 
-        b1=Button(image=self.photoimg3,cursor="hand2")
+        b1=Button(image=self.photoimg3,cursor="hand2", command=self.student_details)
         b1.place(x=100,y=200,width=210,height=200)
 
-        b1_1=Button(text="Student Details",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue")
+        b1_1=Button(text="Student Details",cursor="hand2",
+                    font=("times new roman",15,"bold"),
+                    bg="white",fg="darkblue",
+                    command=self.student_details)
         b1_1.place(x=100,y=400,width=210,height=40)
+        # -------------------------------------------------------
 
-       
+
         #Face recognition
         img4=Image.open (r"images\Face_Recognition.avif")
         img4=img4.resize((220,220))
@@ -86,22 +118,25 @@ class Face_recognization_system:
         img7=img7.resize((220,220))
         self.photoimg7=ImageTk.PhotoImage(img7)
 
-        b1=Button(image=self.photoimg7,cursor="hand2")
+        b1=Button(image=self.photoimg7,cursor="hand2",command=self.open_train)
         b1.place(x=100,y=500,width=210,height=200)
 
-        b1_1=Button(text="Train Data",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue")
+        b1_1=Button(text="Train Data",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue",command=self.open_train)
         b1_1.place(x=100,y=700,width=210,height=40)
 
+    
         #Photos
         img8=Image.open (r"images\Photos.jpg")
         img8=img8.resize((220,220))
         self.photoimg8=ImageTk.PhotoImage(img8)
 
-        b1=Button(image=self.photoimg8,cursor="hand2")
-        b1.place(x=450,y=500,width=210,height=200)
+        b3 = Button(image=self.photoimg8, cursor="hand2", command=self.open_photos)
+        b3.place(x=450, y=500, width=210, height=200)
 
-        b1_1=Button(text="Photos",cursor="hand2",font=("times new roman",15,"bold"),bg="white",fg="darkblue")
-        b1_1.place(x=450,y=700,width=210,height=40)
+        b3_1 = Button(text="Photos", cursor="hand2", font=("times new roman",15,"bold"),
+              bg="white", fg="darkblue", command=self.open_photos)
+        b3_1.place(x=450, y=700, width=210, height=40)
+
 
         #Developer
         img9=Image.open (r"images\Developer.avif")
@@ -127,9 +162,7 @@ class Face_recognization_system:
 
 
 
-
 if __name__ == "__main__":
     root = Tk()
     obj = Face_recognization_system(root)
     root.mainloop()
-
