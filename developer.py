@@ -6,8 +6,8 @@ devs = [
    
     {"name": "Vedika Mohite", "role": "Project Manager & Lead Developer", "email": "vedikamohite.@google.com", "phone": "+91 91234 56789"},
      {"name": "Rani Pukale", "role": "Backend Developer", "email": "ranipukale.@google.com", "phone": "+91 98765 43210"},
-    {"name": "Samruddhi Nangre-Patil", "role": "Frontend Develope", "email": "samruddhipatil.@google.com", "phone": "+91 99876 54321"},
-    {"name": "Shreya Jadhav", "role": "Frontend Develope", "email": "shreya.jadhav@google.com", "phone": "+91 99876 54321"}
+    {"name": "Samruddhi Nangre-Patil", "role": "Frontend Developer", "email": "samruddhipatil.@google.com", "phone": "+91 99876 54321"},
+    {"name": "Shreya Jadhav", "role": "Frontend Developer", "email": "shreya.jadhav@google.com", "phone": "+91 99876 54321"}
 ]
 
 class HelpUI:
