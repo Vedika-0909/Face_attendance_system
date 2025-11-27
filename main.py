@@ -139,7 +139,7 @@ class Face_recognization_system:
 
 
         #Developer
-        img9=Image.open (r"images\Developer.avif")
+        img9=Image.open (r"images\developer.png")
         img9=img9.resize((220,220))
         self.photoimg9=ImageTk.PhotoImage(img9)
 
