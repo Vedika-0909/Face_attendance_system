@@ -63,9 +63,9 @@ class Face_recognization_system:
         # -------------------- DEVELOPER WINDOW --------------------
         def open_developer_window():
             try:
-                from developer import HelpUI
+                from developer import DeveloperUI
                 new_win = Toplevel(self.root)
-                HelpUI(new_win)
+                DeveloperUI(new_win)
             except Exception as e:
                 messagebox.showerror("Error", f"Could not open Developer window\n{e}")
 
@@ -75,9 +75,9 @@ class Face_recognization_system:
         # -------------------- HELP WINDOW --------------------
         def open_help_window():
             try:
-                from Help import Help
+                from Help import HelpUI
                 new_win = Toplevel(self.root)
-                Help(new_win)
+                HelpUI(new_win)
             except Exception as e:
                 messagebox.showerror("Error", f"Could not open Help window\n{e}")
 
