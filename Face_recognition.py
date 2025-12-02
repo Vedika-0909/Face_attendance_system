@@ -29,7 +29,7 @@ class Face_Recognition:
 
         # ---------- BG IMAGE ----------
         try:
-            img_top = Image.open(r"images/facial-recognition.avif")
+            img_top = Image.open(r"images\facial-recognition.avif")
             img_top = img_top.resize((650, 700))
             self.photoimg_top = ImageTk.PhotoImage(img_top)
             f_lbl = Label(self.root, image=self.photoimg_top)
